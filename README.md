@@ -10,7 +10,7 @@
 <img src="https://img.shields.io/badge/agent-Hermes-orange?style=flat-square" alt="Hermes Agent">
 <img src="https://img.shields.io/badge/SHA--256-verified%20install-brightgreen?style=flat-square" alt="Checksum-verified installer">
 
-**[Install](#install) · [Prompt](#prompt) · [How it works](#how-it-works) · [Security](#security-and-privacy) · [Usage](#usage) · [FAQ](#faq)**
+**[Install](#install) · [Prerequisites](#prerequisites-free-pi-cli) · [Prompt](#prompt) · [How it works](#how-it-works) · [Security](#security-and-privacy) · [Usage](#usage) · [FAQ](#faq)**
 
 </div>
 
@@ -31,8 +31,23 @@ This skill puts the agent in one lane: **prompt engineer**. It reads your rough 
 | Model | Chosen silently by the agent | Picked by you from a live popup |
 | Reasoning | Guessed | Picked by you (`off` to `high`) |
 | Prompt | Rough request passed through | Rewritten into one scoped, self-contained prompt |
-| Who writes code | The agent, unpredictably | free-pi, always |
+| Who writes code | The agent, unpredictably | free-pi (by design) |
 | Stale model names | Hardcoded in text | Re-discovered on every task |
+
+## Prerequisites: free-pi CLI
+
+This skill is only instructions. It does **not** bundle or install the [free-pi CLI](https://freepi.ai). You must install and sign in to the CLI yourself; without it, live model discovery cannot run.
+
+1. **Node.js 22.15.0 or newer** (required by `free-pi-cli`). Check with `node -v`.
+2. **Install the CLI:**
+
+   ```bash
+   npm install -g free-pi-cli@latest
+   ```
+
+   Or run it on demand with `npx free-pi-cli@latest`, which fetches it the first time. This repository does neither; it only installs the skill file.
+3. **Verify:** `free-pi-cli --version` (or `npx free-pi-cli@latest --version`).
+4. **Sign in:** the first run starts a guest trial and then asks for GitHub sign-in. The token is stored at `~/.free-pi/agent/credentials.json`.
 
 ## How it works
 
@@ -40,7 +55,7 @@ This skill puts the agent in one lane: **prompt engineer**. It reads your rough 
 2. **Ask** you in one popup: model + reasoning level.
 3. **Launch** free-pi in a PTY, apply your picks, verify the footer and session JSONL.
 4. **Submit** one precise prompt built from your rough request.
-5. **Report** the result. The agent never writes or edits source itself.
+5. **Report** the result. By design the agent does not write or edit source itself.
 
 The role boundary is written into the skill, not left to interpretation: zero code, zero file edits, no web search to answer your question, no taking over when free-pi stalls.
 
@@ -50,7 +65,7 @@ The role boundary is written into the skill, not left to interpretation: zero co
 curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh | bash
 ```
 
-Or clone the repo and run `bash install.sh`. The installer writes only one file, `~/.hermes/skills/free-pi/SKILL.md`, and checks its SHA-256 before installing. It respects `$HERMES_HOME` for profile-specific installs.
+Or clone the repo and run `bash install.sh`. The only persistent file it writes is `~/.hermes/skills/free-pi/SKILL.md`, and it checks its SHA-256 before installing. It respects `$HERMES_HOME` for profile-specific installs. It does not install the free-pi CLI; see [Prerequisites](#prerequisites-free-pi-cli).
 
 Then start a **new** Hermes chat session. Skills in an open session are cached. Verify with:
 
@@ -69,9 +84,10 @@ Install the free-pi skill from https://github.com/amiador017-commits/free-pi-ski
 
 Do exactly this:
 1. Fetch and read https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh. Confirm it only writes ~/.hermes/skills/free-pi/SKILL.md and verifies a SHA-256 checksum. If it does anything else, stop and report it.
-2. Run: curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh | bash
-3. Verify with: hermes skills list | grep free-pi
-4. Report the installed path, the checksum printed, and tell me to start a NEW Hermes chat session so the skill loads.
+2. Check the free-pi CLI prerequisite with: npx free-pi-cli@latest --version. If it is missing, tell me to install it with `npm install -g free-pi-cli@latest` (Node.js 22.15.0+) and stop. Do not install it for me.
+3. Run: curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh | bash
+4. Verify with: hermes skills list | grep free-pi
+5. Report the installed path, the checksum printed, and tell me to start a NEW Hermes chat session so the skill loads.
 
 Do not modify any other file. This skill is supported by Hermes Agent only for now. If Hermes is not installed here, stop and say so instead of installing anything.
 ````
@@ -88,14 +104,14 @@ General chat questions do not trigger this skill.
 
 ## Security and privacy
 
-This repo is **plain Markdown plus a small Bash installer**. No binaries, no executables, no build step, no telemetry, no package installation.
+This repo is **plain Markdown plus a small Bash installer**. No compiled binaries, no build step, no telemetry, no dependency installation by this repo. The free-pi CLI is a separate prerequisite; see [Prerequisites](#prerequisites-free-pi-cli).
 
 | Question | Answer |
 |---|---|
 | Does it contain secrets? | No. No token or API key is bundled. |
 | What does the skill read? | Your own `~/.free-pi/agent/credentials.json`, at runtime. |
 | Is the token ever printed? | No. It is used only in an Authorization header for the catalog call. |
-| Network access | One GET to `https://api.freepi.ai/client-version` per task. Nothing else. |
+| Network access from this skill's discovery step | One GET to `https://api.freepi.ai/client-version` per task. The free-pi CLI makes its own network calls once launched; those are its behaviour, not this repo's. |
 | Files written by the installer | One: `SKILL.md` under your Hermes skills directory. |
 | How do I verify the download? | The installer pins a tag and verifies SHA-256 before installing. |
 
@@ -113,7 +129,7 @@ Because a model that is free today may not be free tomorrow. The list is fetched
 `clarify` allows four clickable choices; the rest are available through its "Other" row.
 
 **Does Hermes verify the result?**
-Yes, with build/test/grep commands. That is checking, not implementing; it never becomes Hermes writing code.
+Yes, with build/test/grep commands. That is checking, not implementing; verification should not turn into Hermes writing code.
 
 ## Contributions
 
