@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="160" viewBox="0 0 720 160" role="img" aria-label="free-pi skill for Hermes Agent">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#161b22"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="160" rx="16" fill="url(#bg)"/>
+  <rect x="1" y="1" width="718" height="158" rx="15" fill="none" stroke="#30363d"/>
+  <rect x="28" y="44" width="72" height="72" rx="14" fill="#1f6feb" opacity="0.18"/>
+  <path d="M65 54 L49 84 L62 84 L57 106 L81 74 L67 74 Z" fill="#58a6ff"/>
+  <text x="124" y="82" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="38" font-weight="700" fill="#f0f6fc">free-pi</text>
+  <text x="124" y="112" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="15" fill="#8b949e">prompt engineer skill for Hermes Agent</text>
+  <text x="124" y="135" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="#6e7681">discover. select. delegate. verify.</text>
+  <circle cx="660" cy="42" r="5" fill="#3fb950"/>
+  <text x="674" y="47" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="#8b949e">v2.0.0</text>
+</svg>
