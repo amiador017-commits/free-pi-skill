@@ -10,7 +10,7 @@
 <img src="https://img.shields.io/badge/agent-Hermes-orange?style=flat-square" alt="Hermes Agent">
 <img src="https://img.shields.io/badge/SHA--256-verified%20install-brightgreen?style=flat-square" alt="Checksum-verified installer">
 
-**[Install](#install) · [How it works](#how-it-works) · [Security](#security-and-privacy) · [Usage](#usage) · [FAQ](#faq)**
+**[Install](#install) · [Prompt](#prompt) · [How it works](#how-it-works) · [Security](#security-and-privacy) · [Usage](#usage) · [FAQ](#faq)**
 
 </div>
 
@@ -60,6 +60,22 @@ hermes skills list | grep free-pi
 
 Giving this repo to another agent? Point it at [`INSTALL.md`](INSTALL.md), which is the same procedure in agent-facing form.
 
+## Prompt
+
+Copy this whole block and paste it into **any agent chat** (Hermes, Claude Code, Codex, or another agent). It installs and verifies the skill without you running commands yourself.
+
+````text
+Install the free-pi skill from https://github.com/amiador017-commits/free-pi-skill into this machine's Hermes Agent skills directory.
+
+Do exactly this:
+1. Fetch and read https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh. Confirm it only writes ~/.hermes/skills/free-pi/SKILL.md and verifies a SHA-256 checksum. If it does anything else, stop and report it.
+2. Run: curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh | bash
+3. Verify with: hermes skills list | grep free-pi
+4. Report the installed path, the checksum printed, and tell me to start a NEW Hermes chat session so the skill loads.
+
+Do not modify any other file. This skill is supported by Hermes Agent only for now. If Hermes is not installed here, stop and say so instead of installing anything.
+````
+
 ## Usage
 
 ```
@@ -99,9 +115,9 @@ Because a model that is free today may not be free tomorrow. The list is fetched
 **Does Hermes verify the result?**
 Yes, with build/test/grep commands. That is checking, not implementing; it never becomes Hermes writing code.
 
-## Contributing
+## Contributions
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Changes to `SKILL.md` require updating the checksum in `install.sh` and a new release tag.
+Contributions are **closed for now**. Bug reports are welcome through the issue tracker; please do not open pull requests yet.
 
 ## License
 
