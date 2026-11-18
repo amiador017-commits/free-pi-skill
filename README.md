@@ -51,18 +51,20 @@ This skill is only instructions. It does **not** bundle or install the [free-pi 
 
 ## How it works
 
-1. **Discover** the live free-unlimited models from free-pi's own catalog (`/client-version`). No cached list, no guessing.
-2. **Ask** you in one popup: model + reasoning level.
+1. **Discover** every model from free-pi's own catalog (`/client-version`) and group them into three tiers. No cached list, no guessing.
+2. **Ask** through three popups in order: tier, model from that tier, then reasoning level.
 3. **Launch** free-pi in a PTY, apply your picks, verify the footer and session JSONL.
 4. **Submit** one precise prompt built from your rough request.
 5. **Report** the result. By design the agent does not write or edit source itself.
+
+The first popup offers three tiers: **Free Unlimited** (0 credit), **Free But At Capacity** (~0.2x to 5.9x usage), and **Defense** (20x+ usage). The second popup lists only the models in the tier you chose; the third picks the reasoning level.
 
 The role boundary is written into the skill, not left to interpretation: zero code, zero file edits, no web search to answer your question, no taking over when free-pi stalls.
 
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.1.0/install.sh | bash
 ```
 
 Or clone the repo and run `bash install.sh`. The only persistent file it writes is `~/.hermes/skills/free-pi/SKILL.md`, and it checks its SHA-256 before installing. It respects `$HERMES_HOME` for profile-specific installs. It does not install the free-pi CLI; see [Prerequisites](#prerequisites-free-pi-cli).
@@ -83,9 +85,9 @@ Copy this whole block and paste it into **any agent chat** (Hermes, Claude Code,
 Install the free-pi skill from https://github.com/amiador017-commits/free-pi-skill into this machine's Hermes Agent skills directory.
 
 Do exactly this:
-1. Fetch and read https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh. Confirm it only writes ~/.hermes/skills/free-pi/SKILL.md and verifies a SHA-256 checksum. If it does anything else, stop and report it.
+1. Fetch and read https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.1.0/install.sh. Confirm it only writes ~/.hermes/skills/free-pi/SKILL.md and verifies a SHA-256 checksum. If it does anything else, stop and report it.
 2. Check the free-pi CLI prerequisite with: npx free-pi-cli@latest --version. If it is missing, tell me to install it with `npm install -g free-pi-cli@latest` (Node.js 22.15.0+) and stop. Do not install it for me.
-3. Run: curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh | bash
+3. Run: curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.1.0/install.sh | bash
 4. Verify with: hermes skills list | grep free-pi
 5. Report the installed path, the checksum printed, and tell me to start a NEW Hermes chat session so the skill loads.
 

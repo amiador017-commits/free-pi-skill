@@ -3,8 +3,8 @@
 # Works from a clone (./SKILL.md) or via curl | bash (downloads a pinned, checksum-verified file).
 set -euo pipefail
 
-REPO_RAW="https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0"
-EXPECTED_SHA256="c829e3bf8e497ad9395439a7d4b3a76c490af658ab55418c17803713ff82b18f"
+REPO_RAW="https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.1.0"
+EXPECTED_SHA256="737ec4af74dc9449de06596d98dd7a0b97addc71edc8822cd29d9ef5802c9e9d"
 HERMES_HOME_DIR="${HERMES_HOME:-$HOME/.hermes}"
 DEST="$HERMES_HOME_DIR/skills/free-pi/SKILL.md"
 TMP="$(mktemp)"
@@ -39,6 +39,6 @@ fi
 grep -q '^name: free-pi' "$TMP" || { echo "ERROR: invalid skill frontmatter." >&2; exit 1; }
 mv "$TMP" "$DEST"
 
-echo "Installed free-pi skill v2.0.0 -> $DEST"
+echo "Installed free-pi skill v2.1.0 -> $DEST"
 echo "Verified: SHA-256 $ACTUAL"
 echo "Next: start a NEW Hermes chat session so the skill loads."

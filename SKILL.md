@@ -1,7 +1,7 @@
 ---
 name: free-pi
 description: "Delegate coding to the free-pi CLI (free AI coding agent)."
-version: 2.0.0
+version: 2.1.0
 author: amiador017-commits
 license: MIT
 platforms: [linux, macos]
@@ -49,40 +49,63 @@ When the user reports that the model/reasoning popup did not appear, first estab
 
 Never hardcode the model or reasoning level into the task prompt. The user wants to choose them at runtime through a popup. Every free-pi task runs this preflight BEFORE launching the CLI and BEFORE submitting his original prompt.
 
-### 1. Discover the live free-unlimited models
+### 1. Discover all models and group them into three tiers
 
 Run this read-only discovery command. It reads the stored free-pi token but never prints it:
 
 ```bash
 python3 - <<'PY'
-import json, os, urllib.request
+import json, os, re, urllib.request
 cred = json.load(open(os.path.expanduser("~/.free-pi/agent/credentials.json")))
 base = os.environ.get("FREEPI_BASE_URL", "https://api.freepi.ai").rstrip("/")
 req = urllib.request.Request(base + "/client-version", headers={"Authorization": "Bearer " + cred["token"]})
 d = json.load(urllib.request.urlopen(req, timeout=10))
-free = [{"id": m["id"], "name": m["name"].split("·")[0].strip()}
-        for m in d["models"]
-        if "Free Unlimited" in m.get("name", "") and m.get("section") != "defense"]
-print(json.dumps({"count": len(free), "models": free}, ensure_ascii=False, indent=2))
+tiers = {"free_unlimited": [], "free_at_capacity": [], "defense": []}
+for m in d["models"]:
+    name = m.get("name", "")
+    um = re.search(r"~([\d.]+)x usage", name)
+    usage = float(um.group(1)) if um else None
+    label = name.split("·")[0].strip()
+    cost = name.split("·", 1)[1].strip() if "·" in name else ""
+    if "Free Unlimited" in name:
+        tier, credits = "free_unlimited", "0 credit"
+    elif m.get("section") == "defense" or (usage is not None and usage >= 20):
+        tier, credits = "defense", cost
+    else:
+        tier, credits = "free_at_capacity", cost
+    tiers[tier].append({"id": m["id"], "name": label, "usage": usage, "cost": credits})
+print(json.dumps(tiers, ensure_ascii=False, indent=2))
 PY
 ```
 
-`Free Unlimited` is the CLI's own marker (`FREE_LABEL = "Free Unlimited: limited time"`); `defense`-section entries are capacity-limited, not free-unlimited, so they are excluded. This returned 4 models on first run: `particle`, `deepseek-v4.1-flash`, `glm-5.3-flash`, `deepseek-v4-flash`. The list is time-limited and can change, so re-run discovery on EVERY task and never trust a cached memory of it.
+Tier rules, derived from the live catalog (never hardcode the model lists):
 
-If discovery fails (offline or 401), launch a probe free-pi PTY, open `/model`, read the picker lines from `process_manage(action='log')`, keep only lines containing `🔥 Free Unlimited: limited time`, then kill that probe session with `process_manage(action='kill')`. Never guess the list from memory.
+- `free_unlimited`: carries the CLI's own `Free Unlimited` marker. **0 credit**. Currently Particle-1, DeepSeek V4.1 Flash, GLM 5.3 Flash, DeepSeek V4 Flash.
+- `free_at_capacity`: usage from about **0.2x to 5.9x**, low token draw. Currently Hy4 Flash, MiMo V2.6 Flash, Solar Pro 4, DeepSeek V4.1 Flash 600tps, Qwen3.5 35B, DeepSeek V4 Pro.
+- `defense`: usage **20x and above**, or `section == defense`. Currently Qwen 3.6 Plus Uncensored, Abliterated Large Flash/V2, DeepSeek V4.1 Flash Abliterated, Gemma 4 Uncensored, GLM 4.7 Flash Heretic, Uncensored 1.2, Kimi K3.1 Pro (premium credits).
 
-### 2. Show the popup (model + reasoning, one form)
+The catalog is time-limited and can change, so re-run discovery on EVERY task and never trust a cached memory of it.
 
-Call `clarify` with TWO questions in a SINGLE call; this is the popup. If `clarify` is not in the agent's direct tool list, find it first with `tool_search(queries=['clarify user question choices'])`, then `tool_describe(name='clarify')`, then invoke it via `tool_call`. Never skip the popup because the tool is deferred.
+If discovery fails (offline or 401), launch a probe free-pi PTY, open `/model`, read the picker lines from `process_manage(action='log')`, and classify by the same markers (`Free Unlimited` / `~x usage` with the 20x cutoff). Kill the probe with `process_manage(action='kill')`. Never guess the list from memory.
 
-- Q1 "free-pi model?" single-select. Choices = discovered models formatted `Name (id)`, recommended first (last pick from `~/.free-pi/agent/hermes-prefs.json`, else `deepseek-v4.1-flash`). `clarify` allows at most 4 choices; if discovery returns more than 4, show the top 4 and tell him to use the auto "Other" row to type any other exact id.
-- Q2 "Reasoning level?" single-select. Choices: `high (Recommended)`, `medium`, `low`, `minimal`. The fifth valid level `off` is typed in the auto "Other" row. The CLI caps reasoning at `high`; `/thinking max` and `/thinking xhigh` fail with `Error: Unknown thinking level`, so never offer `max` as a clickable option. If he types `max` in Other, map it to `high` and say so.
+### 2. Three popups in order: tier, then model, then reasoning
 
-Wait for BOTH answers. Do not launch free-pi or submit the task prompt before they arrive. If he says "skip / default / just do it", fall back to `deepseek-v4.1-flash @ high` and continue.
+If `clarify` is not in the agent's direct tool list, find it with `tool_search(queries=['clarify user question choices'])`, then `tool_describe(name='clarify')`, then invoke it via `tool_call`. Never skip the popups because the tool is deferred. Call them SEQUENTIALLY, not as one multi-question form.
 
-If the host agent has no `clarify` tool (e.g. Claude Code / Codex / opencode reading this skill), show the same options as a short numbered text list and ask him to reply with the model number and the level name; treat that reply exactly like the popup answers.
+**Popup 1 - tier.** Question `free-pi model tier?`, single-select, exactly these 3 choices in this order:
+1. `Free Unlimited (0 credit)` => tier `free_unlimited`
+2. `Free But At Capacity (~0.2x to 5.9x usage)` => tier `free_at_capacity`
+3. `Defense (20x+ usage, premium/uncensored)` => tier `defense`
 
-Persist the answers to `~/.free-pi/agent/hermes-prefs.json` as `{"model": "<id>", "thinking": "<level>"}` so the recommended-first ordering follows his last pick. This file is a hint only; it never overrides the popup.
+Wait for the answer. If he says "skip / default", choose Free Unlimited and continue.
+
+**Popup 2 - model from that tier.** Question `Model from <chosen tier>?`, single-select. Choices = ONLY the models in the chosen tier, formatted `Name (id) - cost`. Recommended first = last pick from `~/.free-pi/agent/hermes-prefs.json` if present in this tier, else the lowest-usage entry. `clarify` allows at most 4 choices; the free-at-capacity and defense tiers have more than 4 models, so print the full tier list in chat text first, put the 4 lowest-usage entries in the popup, and tell him to use the auto "Other" row to type any other exact id from that list. Wait for the answer.
+
+**Popup 3 - reasoning.** Question `Reasoning level?`, single-select. Choices: `high (Recommended)`, `medium`, `low`, `minimal`. The fifth valid level `off` is typed in the auto "Other" row. The CLI caps reasoning at `high`; `/thinking max` and `/thinking xhigh` fail with `Error: Unknown thinking level`, so never offer `max` as a clickable option. If he types `max` in Other, map it to `high` and say so.
+
+Do NOT launch free-pi and do NOT submit the task prompt before all three answers arrive. If the host agent has no `clarify` tool (e.g. Claude Code / Codex / opencode reading this skill), show each step as a short numbered text list and treat his replies exactly like the popup answers.
+
+Persist `{"tier": "<tier>", "model": "<id>", "thinking": "<level>"}` to `~/.free-pi/agent/hermes-prefs.json` so the recommended-first ordering follows his last pick. This file is a hint only; it never overrides the popups.
 
 ### 3. Apply the choice, then continue the original task
 
@@ -130,7 +153,7 @@ Then drive it with `process_manage` (submit/write/wait/log). **Never run in fore
 
 ## Model filter cheat-sheet (apply the preflight choice)
 
-All four currently free-unlimited ids and the exact filter to send with `write`:
+Filters for the common free-unlimited ids. For any other tier, `write` a distinctive part of the id, read `process_manage(action='log')` for the exact highlighted (`→`) line, then empty `submit` to confirm. Model ids are exact, so an id fragment is always a safer filter than a display name.
 
 | Selected id | Filter (`write`) | Highlighted line to confirm before empty `submit` | Confirm footer/jsonl |
 | --- | --- | --- | --- |

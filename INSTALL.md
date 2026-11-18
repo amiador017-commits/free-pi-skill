@@ -11,10 +11,10 @@ If an agent is given this repository and asked to "install this skill", do exact
    Or, directly from GitHub without cloning:
 
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.0.0/install.sh | bash
+   curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.1.0/install.sh | bash
    ```
 
-   The installer downloads `SKILL.md` from the `v2.0.0` tag and verifies its SHA-256 before writing into the skills directory. A checksum mismatch aborts the install. It writes exactly one persistent file.
+   The installer downloads `SKILL.md` from the `v2.1.0` tag and verifies its SHA-256 before writing into the skills directory. A checksum mismatch aborts the install. It writes exactly one persistent file.
 
 2. Verify installation:
 
