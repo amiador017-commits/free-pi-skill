@@ -11,18 +11,19 @@ If an agent is given this repository and asked to "install this skill", do exact
    Or, directly from GitHub without cloning:
 
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.1.0/install.sh | bash
+   curl -fsSL https://raw.githubusercontent.com/amiador017-commits/free-pi-skill/v2.2.0/install.sh | bash
    ```
 
-   The installer downloads `SKILL.md` from the `v2.1.0` tag and verifies its SHA-256 before writing into the skills directory. A checksum mismatch aborts the install. It writes exactly one persistent file.
+   The installer downloads `SKILL.md` and `scripts/pi_picker.py` from the `v2.2.0` tag and verifies each file's SHA-256 before writing into the skills directory. A checksum mismatch aborts the install. It writes exactly two persistent files, both under `$HERMES_HOME/skills/free-pi/`.
 
 2. Verify installation:
 
    ```bash
    hermes skills list | grep free-pi
+   python3 "$HERMES_HOME/skills/free-pi/scripts/pi_picker.py" --tier free_unlimited --shortcuts
    ```
 
-   Expected: a row containing `free-pi` with status `enabled`.
+   Expected: a row containing `free-pi` with status `enabled`, and a short JSON list of shortcut strings printed by the picker (it reads the live catalog with your own free-pi token).
 
 3. Tell the user to start a **new** Hermes chat session. Skills loaded in an existing session are cached; a new session is required.
 
@@ -32,13 +33,13 @@ The free-pi CLI is **not** installed by this repo. Before calling the setup comp
 
 ## Paths and scope
 
-- Target: `$HERMES_HOME/skills/free-pi/SKILL.md`, or `~/.hermes/skills/free-pi/SKILL.md` when `HERMES_HOME` is unset. Profile-specific homes are respected.
-- The skill is plain Markdown instructions. Do not execute its code blocks; they are documentation for the agent that loads it.
-- Do not run any file from this repo other than `install.sh`.
+- Target: `$HERMES_HOME/skills/free-pi/` (`SKILL.md` plus `scripts/pi_picker.py`), or `~/.hermes/skills/free-pi/` when `HERMES_HOME` is unset. Profile-specific homes are respected.
+- The skill is Markdown instructions; `pi_picker.py` is the only executable it ships, and its job is the read-only catalog lookup and the tier rendering. Do not execute other code blocks in `SKILL.md`; they are documentation for the agent that loads the skill.
+- Do not run any other file from this repo besides `install.sh`.
 
 ## Manual alternative
 
-Copy `SKILL.md` into `~/.hermes/skills/free-pi/SKILL.md`, then start a new session. Verify with `sha256sum SKILL.md`; the expected digest is in `install.sh`.
+Copy `SKILL.md` and `scripts/pi_picker.py` into `~/.hermes/skills/free-pi/` (keeping the `scripts/` subdirectory), then start a new session. Verify with `sha256sum SKILL.md scripts/pi_picker.py`; both expected digests are in `install.sh`. A skill installed without `scripts/pi_picker.py` is incomplete: the preflight cannot render a full tier.
 
 ## Availability
 
